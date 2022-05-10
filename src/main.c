@@ -36,7 +36,7 @@ int update(void* userdata);
 int drawParticles(void);
 int drawHUD(void);
 void setupGame(void);
-void updateTurret(void);
+void updateTurret(LCDSprite* s);
 void loadAssets(void);
 void buildGround(void); //name?
 LCDSprite *shoot(void);
@@ -461,7 +461,7 @@ int updatePlay(void* userdata)
 {
 	int i = 0;
 	int saveTime = pd->system->getCurrentTimeMilliseconds();
-
+	pd->system->logToConsole("in updatePlay");
 	deltaTime = saveTime - lastTime;
 	lastTime = saveTime;
 
