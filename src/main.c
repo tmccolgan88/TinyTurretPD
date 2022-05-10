@@ -290,7 +290,7 @@ void updateTurret(LCDSprite* s)
 	PDButtons current;
 	pd->system->getButtonState(&current, NULL, NULL);
 
-	if (shootTimer < SHOOT_TIME)
+	if (shootTimer <=  SHOOT_TIME)
 		shootTimer += deltaTime;
 
 	if ((current & kButtonUp) && shootTimer > SHOOT_TIME)
@@ -461,7 +461,6 @@ int updatePlay(void* userdata)
 {
 	int i = 0;
 	int saveTime = pd->system->getCurrentTimeMilliseconds();
-	pd->system->logToConsole("in updatePlay");
 	deltaTime = saveTime - lastTime;
 	lastTime = saveTime;
 
@@ -560,4 +559,6 @@ int update(void* userdata)
 	{
 		updateMenu(userdata);
 	}
+
+	return 1;
 }
