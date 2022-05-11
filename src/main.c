@@ -67,9 +67,14 @@ typedef struct VelocitySprite
 
 } VelocitySprite;
 
-GameState gameState = Play;
+GameState gameState = Menu;
 
 PlaydateAPI* pd = NULL;
+
+//menu bitmaps
+LCDBitmap* menuBorderBMP;
+
+//game bitmaps
 LCDSprite* turret;
 LCDBitmap* bulletBMP;
 LCDBitmap* missileBMP;
@@ -407,6 +412,7 @@ void loadAssets()
 {
 	const char* outErr = NULL;
 
+	menuBorderBMP = loadImageAtPath("images/menu_border");
 	bulletBMP = loadImageAtPath("images/bullet");
 	missileBMP = loadImageAtPath("images/missile");
 	ground1BMP = loadImageAtPath("images/ground1");
@@ -447,6 +453,7 @@ int drawHUD()
 
 int updateMenu(void* userdata)
 {
+	pd->graphics->drawBitmap(menuBorderBMP, 0, 0, kBitmapUnflipped);
 	PDButtons current;
 	pd->system->getButtonState(&current, NULL, NULL);
 
