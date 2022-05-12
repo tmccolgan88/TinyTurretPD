@@ -16,6 +16,9 @@
 
 #define HIGH_SCORE_FILE "highscore.txt";
 
+#define TURRET_START_X 293
+#define TURRET_START_Y 178
+
 #define RIGHT_BOUNDARY 385
 #define LEFT_BOUNDARY 190
 
@@ -34,7 +37,7 @@ __declspec(dllexport)
 //prototypes
 int update(void* userdata);
 int drawParticles(void);
-int drawHUD(void);
+void drawHUD(void);
 void setupGame(void);
 void updateTurret(LCDSprite* s);
 void loadAssets(void);
@@ -58,14 +61,6 @@ typedef enum {
 	kGround2 = 4,
 	kGround3 = 5
 } SpriteType;
-
-typedef struct VelocitySprite
-{
-	LCDSprite* sprite;
-	int vx;
-	int vy;
-
-} VelocitySprite;
 
 GameState gameState = Menu;
 
@@ -121,7 +116,6 @@ int writeHighScore(int finalGameScore)
 
 int readHighScore()
 {
-	int err = 0;
 	char highScoreBuf[5];
 
 	SDFile* file = pd->file->open("highscore.txt", kFileReadData);
@@ -141,7 +135,6 @@ int eventHandler(PlaydateAPI* p, PDSystemEvent event, uint32_t arg)
 		pd = p;
 		readHighScore();
 		loadAssets();
-		setupGame();
 	}
 
 	return 0;
@@ -173,7 +166,6 @@ void updateMissile(LCDSprite *s)
 	if (collisionLen > 0)
 	{
 		SpriteCollisionInfo info;
-
 		//probably don't need to do a loop here, could
 		//speed it up by just grabbing element one of the array
 		int i;
@@ -181,26 +173,20 @@ void updateMissile(LCDSprite *s)
 		{
 			info = collisions[i];
 
+			pd->sprite->removeSprite(s);
+			pd->sprite->removeSprite(info.other);
+			pd->sprite->freeSprite(s);
+			pd->sprite->freeSprite(info.other);
+
 			if (pd->sprite->getTag(info.other) == kBullet)
 			{
-				pd->sprite->removeSprite(s);
-				pd->sprite->freeSprite(s);
-				
 				addParticleBurst(particleBMP, x, y);
 				score += 5 * multiplier;
 				multiplier++;
-				pd->sprite->removeSprite(info.other);
-				pd->sprite->freeSprite(info.other);
-
 			}
 			else 
 			{
-				pd->sprite->removeSprite(s);
-				pd->sprite->freeSprite(s);
-
 				multiplier = 1;
-				pd->sprite->removeSprite(info.other);
-				pd->sprite->freeSprite(info.other);
 
 				if (pd->sprite->getTag(info.other) == kGround2)
 				{
@@ -214,7 +200,6 @@ void updateMissile(LCDSprite *s)
 
 					gameState = GameOver;
 				}
-
 			}
 
 			missileCounter--;
@@ -348,7 +333,7 @@ LCDSprite* createTurret()
 	LCDBitmap *turretImage = loadImageAtPath("images/turret_sprite");
 
 	pd->sprite->setImage(player, turretImage, kBitmapUnflipped);
-	pd->sprite->moveTo(player, 293, 178);
+	pd->sprite->moveTo(player, TURRET_START_X, TURRET_START_Y);
 	pd->sprite->setZIndex(player, 1000);
 	pd->sprite->addSprite(player);
 	pd->sprite->setTag(player, kTurret);
@@ -430,7 +415,7 @@ void loadAssets()
 	}
 }
 
-int drawHUD()
+void drawHUD()
 {
 	char scoreText[20];
 	char multiplierText[20];
@@ -462,11 +447,12 @@ int updateMenu(void* userdata)
 		gameState = Play;
 		setupGame();
 	}
+
+	return 1;
 }
 
 int updatePlay(void* userdata)
 {
-	int i = 0;
 	int saveTime = pd->system->getCurrentTimeMilliseconds();
 	deltaTime = saveTime - lastTime;
 	lastTime = saveTime;
@@ -529,7 +515,7 @@ int updateGameOver(void* userdata)
 	char* newHighScoreText = "NEW HIGH SCORE";
 	char finalScore [20];
 	
-	drawHUD;
+	drawHUD();
 	pd->graphics->drawBitmap(gameoverBMP, 100, 50, kBitmapUnflipped);
 
 	pd->graphics->drawText(gameOverText, strlen(gameOverText), kASCIIEncoding, 120, 65);
@@ -550,6 +536,8 @@ int updateGameOver(void* userdata)
 		newGame();
 		gameState = Play;
 	}
+
+	return 1;
 }
 
 int update(void* userdata)
